@@ -1,5 +1,6 @@
 ethereum/build/contracts/*.json
 .vscode
+.solhint.json
 package-lock.json
 
 # Logs
