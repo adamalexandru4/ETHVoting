@@ -1,0 +1,16 @@
+{
+    "voter":"0x965cd5b715904c37fcebdcb912c672230103adef",
+    "signature":"0x234587623459623459782346592346759234856723985762398756324985762349587623459876234578965978234659823469324876324978632457892364879234697853467896",
+    "question1":[0,0,1,0],
+    "question2":[1,0],
+    "question3":[0,0,0,1],
+    "p":1234,
+    "rcm":[1234,13134],
+    "question1TotalOptions":4,
+    "question2TotalOptions":2,
+    "question3TotalOptions":4,
+    "question1TotalVotes":1,
+    "question2TotalVotes":1,
+    "question3TotalVotes":1,
+    "totalVotes":3
+}
