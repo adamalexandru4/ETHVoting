@@ -4,7 +4,7 @@
   "description": "Blockchain-Based Online Voting System - Bachelor Project",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "Alexandru Adam",
   "license": "Apache-2.0",
@@ -12,6 +12,8 @@
     "big-integer": "^1.6.48",
     "bignum": "^0.13.1",
     "chai": "^4.2.0",
+    "circom": "0.0.35",
+    "circomlib": "0.0.21",
     "coinkey": "^3.0.0",
     "crypto-browserify": "^3.12.0",
     "ethereumjs-tx": "^2.1.2",
@@ -23,6 +25,7 @@
     "paillier-in-set-zkp": "^0.9.0",
     "snarkjs": "^0.1.20",
     "solc": "^0.6.3",
+    "stealth_eth": "git+https://github.com/eddieoz/stealth_eth.git",
     "truffle": "^5.1.14",
     "web3": "^1.2.6"
   },
