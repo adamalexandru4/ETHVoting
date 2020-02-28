@@ -1,31 +1,5 @@
-pragma solidity ^0.6.1;
+pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2; // for bytes[]
-
-contract Verify { 
-    function verifyProof(uint[2] calldata, uint[2] calldata, uint[2][2] calldata, uint[2] calldata, 
-    uint[2] calldata, uint[2] calldata, uint[2] calldata, uint[2] calldata, uint[7] calldata) external pure returns (bool){} 
-}
-
-contract ADElectionFactory {
-    address[] public ADElectionArray;
-    
-    function createADElection(string memory electionName, bytes memory encryptionPubKey, address zkVerifier) public returns (uint){
-        
-        ADElection newADElection = new ADElection(electionName, encryptionPubKey, zkVerifier, msg.sender);
-        ADElectionArray.push(address(newADElection));
-        
-        // Return the number of election to channge details in future
-        return ADElectionArray.length - 1; 
-    }
-    
-    function getADElectionArray() public view returns(address[] memory) {
-        return ADElectionArray; 
-    }
-    
-    function getNoElections() public view returns(uint) {
-        return ADElectionArray.length;
-    }
-}
 
 contract ADElection {
     
@@ -134,43 +108,5 @@ contract ADElection {
         return (votesArray[index].answersQuestion1, 
                 votesArray[index].answersQuestion2,
                 votesArray[index].answersQuestion3);
-    }
-    
-    function registerVoteProof(
-        uint[2] memory _a,
-        uint[2] memory _a_p,
-        uint[2][2] memory _b,
-        uint[2] memory _b_p,
-        uint[2] memory _c,
-        uint[2] memory _c_p,
-        uint[2] memory _h,
-        uint[2] memory _k,
-        uint[7] memory _input
-        ) public returns (bool){
-        
-        RealVoter storage sender = realVoterArray[realVoters[msg.sender]];
-        if (sender.voted) return(false);
-        
-        Verify verifier = Verify(zkVerifier);
-        if (!verifier.verifyProof(_a, _a_p, _b, _b_p, _c, _c_p, _h, _k, _input)) return (false);
-
-        RealVoter memory newVoter;
-        newVoter.realVoterAddress = msg.sender;
-        newVoter.a = _a;
-        newVoter.a_p = _a_p;
-        newVoter.b = _b;
-        newVoter.b_p = _b_p;
-        newVoter.c = _c;
-        newVoter.c_p = _c_p;
-        newVoter.h = _h;
-        newVoter.k = _k;
-        newVoter.input = _input;
-        newVoter.voted = true;
-        realVoterArray.push(newVoter);
-        
-        realVoters[msg.sender] = realVoterArray.length-1;
-        
-        voteProofs++;
-        return(true);
     }
 }
