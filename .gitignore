@@ -1,4 +1,4 @@
-ethereum/build/contracts/*.json
+build/contracts/*.json
 .vscode
 .solhint.json
 package-lock.json
