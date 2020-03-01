@@ -64,15 +64,13 @@ contract ADElection {
         zkVerifier = _zkVerifier;
     }
     
-    function addFakeVoter(address _address, bytes memory _pubKeyToRecover, bytes32 _pubKeyHash) public returns(bool) {
+    function addFakeVoter(address _address, bytes memory _pubKeyToRecover, bytes32 _pubKeyHash) public {
         // restrict to authorities
         FakeVoter memory newFakeVoter = FakeVoter(_address, _pubKeyToRecover, _pubKeyHash, true, false);
         fakeVoterArray.push(newFakeVoter);
         
         fakeVoters[_address] = fakeVoterArray.length - 1;
         votersCount++;
-        
-        return true;
     }
     
     function addVote(bytes[] memory answer1, bytes[] memory answer2, bytes[] memory answer3, bytes32 newC) public returns(bool) {
@@ -103,10 +101,40 @@ contract ADElection {
         
         return true;
     }
+
+    function registerVoterProof( uint[2] memory _a, uint[2] memory _a_p, uint[2][2] memory _b, uint[2] memory _b_p,
+        uint[2] memory _c, uint[2] memory _c_p, uint[2] memory _h, uint[2] memory _k, uint[7] memory _input) public 
+    {
+        RealVoter storage sender = realVoterArray[realVoters[msg.sender]];
+        require(!sender.voted, "User already voted");
+        
+        Verify verifier = Verify(zkVerifier);
+        require(!verifier.verifyProof(_a, _a_p, _b, _b_p, _c, _c_p, _h, _k, _input), "Proof not valid!");
+        
+        sender.a = _a;
+        sender.a_p = _a_p;
+        sender.b = _b;
+        sender.b_p = _b_p;
+        sender.c = _c;
+        sender.c_p = _c_p;
+        sender.h = _h;
+        sender.k = _k;
+        sender.input = _input;
+        sender.voted = true;
+        
+        realVoterArray.push(sender);
+        realVoters[msg.sender] = realVoterArray.length - 1;
+        
+        voteProofs++;
+    }
     
     function getVoteAnswers(uint index) view public returns(bytes[] memory, bytes[] memory, bytes[] memory) {
         return (votesArray[index].answersQuestion1, 
                 votesArray[index].answersQuestion2,
                 votesArray[index].answersQuestion3);
+    }
+
+    function getFakeVotersSize() view public returns(uint) {
+        return fakeVoterArray.length;
     }
 }
