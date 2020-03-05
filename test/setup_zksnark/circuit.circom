@@ -19,10 +19,10 @@ template ValidateVotes(noOptionsForQ1, noOptionsForQ2, noOptionsForQ3) {
     signal private input p;
     signal private input rcm[2];
 
-    signal output outQuestion1TotalVotes = 0;
-    signal output outQuestion2TotalVotes = 0;
-    signal output outQuestion3TotalVotes = 0;
-    signal output outTotalVotes = 0;
+    signal output outQuestion2TotalVotes;
+    signal output outQuestion3TotalVotes;
+    signal output outQuestion1TotalVotes;
+    signal output outTotalVotes;
 
     for(var i = 0; i < question1TotalOptions; i++) {
         if(question1[i] == 1) {
@@ -31,6 +31,8 @@ template ValidateVotes(noOptionsForQ1, noOptionsForQ2, noOptionsForQ3) {
             outQuestion1TotalVotes === 1; // Constraint allow just one vote
         }
     }
+    
+    
 
     for(var i = 0; i < question2TotalOptions; i++) {
         if(question2[i] == 1) {

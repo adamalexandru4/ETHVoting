@@ -38,6 +38,13 @@ bigInt.rand = function (bitLength) {
     return bigInt.fromArray([...buf], 256);
 };
 
+function p256(n) {
+    let nstr = n.toString(16);
+    while (nstr.length < 64) nstr = "0"+nstr;
+    nstr = `0x${nstr}`;
+    return nstr;
+}
+
 contract('ADElection', async accounts => {
     describe('Install contracts and test', () => {
         beforeEach(async () => {
@@ -128,12 +135,9 @@ contract('ADElection', async accounts => {
         let voter = "0x965cd5b715904c37fcebdcb912c672230103adef";
         let signature = "0x234587623459623459782346592346759234856723985762398756324985762349587623459876234578965978234659823469324876324978632457892364879234697853467896";
     
-        // votes.question1 = [0, 0, 1, 0];
-        // votes.question2 = [1, 0];
-        // votes.question3 = [0, 0, 0, 1];
-        votes.question1 = [1, 0, 0, 0];
-        votes.question2 = [0, 1];
-        votes.question3 = [1, 0, 0, 0];
+        votes.question1 = [0, 0, 1, 0];
+        votes.question2 = [1, 0];
+        votes.question3 = [0, 0, 0, 1];
 
         let count_votes = 0;
         let question1TotalVotes = 0, question2TotalVotes = 0, question3TotalVotes = 0;
@@ -206,12 +210,32 @@ contract('ADElection', async accounts => {
             assert.equal(setup.vk_verifier.nPublic, 7);
         }).timeout(10000000);
 
-        it('Generate proof', () => {
+        it('Generate proof and register it on the smart-contract', async () => {
             witness = circuit.calculateWitness(inputArray);
             let vk_proof = JSON.parse(fs.readFileSync(__dirname + "/myCircuit.vk_proof", "utf8"));
             proof = zkSnark.original.genProof(unstringifyBigInts(vk_proof), unstringifyBigInts(witness));
-            console.log(proof);
             assert.equal(proof.proof.protocol, "original");
+
+            // Test it into the smart contract
+            var A = [ "0x02fa7f333787b97742f7e0a24f16f6557012bef202cf24ae1573758d18b4f9e0", "0x2d7c840c1420f9065f408f4892a89ea3fbd5a15d26026f19dc0f2c09e854508d"];
+            var A_p = [ "0x22519aa9aeb0535b9fe1a6e6117906f21502191471489f8783d9df485e95b1d6", "0x289773490f2c6e53f28b35a45da66242a38aa27afb075762b8cf62c57f183636"];
+            var B = [ ["0x13b16e7f2ce6e5571073e374e06c111c53da5a6cd6bf8ae020e546957764c295", "0x1505a659562a0e6102b75964d50b543c821815cb61a7e3668185a672a50b66ac"], 
+                      ["0x15d2514cf053fd0ce594685f0965fb14c56a09d208390c26714393d09d10db4d", "0x155e4f81e4c1b36faaa6b30f4d13a629df65ac8fc3a7038dd89c0c6233b80499"] ];
+            var B_p = [ "0x269afd1aec861b50263f0f2870ec11271e2f1b02db90d8eb13db1bb47846883b", "0x2c7d6c0951f903567b8a577fee8b899d5492fe1d25ea30097425eb752bf33436"];
+            var C = [ "0x0389a4c722f09ad969b7393e08b1f851b333ea6665bc39746bf463fb2b4eed04", "0x2b91153fda3f83d991241ec6cbfad593c9da0be53f4ff2381d3c17129c0ee604"];
+            var C_p = [ "0x2d89dc26a0341a5af02922b6225285a47607e595f110d7a1547354e6474580a0", "0x0a213967ac7a2f3feefecbcb239750b99039bc4e2a31089cce852c51903fcd09"];
+            var H = [ "0x09f63abe4399764b30841078a76ccbb434a1cd4abf8f27c34be3a9c7e2f9d8a0", "0x2be30724ce81991d2f98651dee4c74cac0b987b2afe6dc6f2dfbfa960f894a64"];
+            var K_p = [ "0x2beec773bb6f9d3caa7978c7eb3fdf182f5c04926a146d0faff093f78bb31852", "0x0ab620f8ac8ac99ae96aed766b5df49154b41698244791782d2055da9e13be81"];
+
+            var params = {
+                'gasPrice': 20000000000,
+                'gas': 4000000,
+                'from': accounts[1]
+            };
+
+            var inputCorrect = [1, 1, 1, 3, 4, 2, 4];
+            var result = await ADElectionInstance.registerVoterProof.call(A, A_p, B, B_p, C, C_p, H, K_p, inputCorrect);
+            assert(result);
         });
 
         it('Verify proof', () => {
