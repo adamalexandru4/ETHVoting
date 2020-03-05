@@ -1,6 +1,11 @@
 pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2; // for bytes[]
 
+contract Verify { 
+    function verifyProof( uint[2] calldata, uint[2] calldata, uint[2][2] calldata, uint[2] calldata, uint[2] calldata, uint[2] calldata, 
+    uint[2] calldata, uint[2] calldata, uint[7] calldata) external pure returns (bool){} 
+}
+
 contract ADElection {
     
     struct Votes {
@@ -33,11 +38,10 @@ contract ADElection {
     }
     
     FakeVoter[] public fakeVoterArray;
-    RealVoter[] public realVoterArray;
     Votes[] public votesArray;
     
     mapping(address => uint) public fakeVoters;
-    mapping(address => uint) public realVoters;
+    mapping(address => RealVoter) public realVoters;
     mapping(address => uint) public votes;
     
     address public owner;
@@ -73,7 +77,7 @@ contract ADElection {
         votersCount++;
     }
     
-    function addVote(bytes[] memory answer1, bytes[] memory answer2, bytes[] memory answer3, bytes32 newC) public returns(bool) {
+    function addVote(bytes[] memory answer1, bytes[] memory answer2, bytes[] memory answer3, bytes32 newCommit) public returns(bool) {
         FakeVoter storage sender = fakeVoterArray[fakeVoters[msg.sender]];
         
         if(sender.voted || !sender.canVote)
@@ -90,7 +94,7 @@ contract ADElection {
         if(answer3.length > 0) {
             newVote.answersQuestion3 = answer3;
         }
-        newVote.commitNo = newC; // ????
+        newVote.commitNo = newCommit;
         
         votesArray.push(newVote);
         votes[msg.sender] = votesArray.length - 1;
@@ -101,31 +105,31 @@ contract ADElection {
         
         return true;
     }
-
+    
     function registerVoterProof( uint[2] memory _a, uint[2] memory _a_p, uint[2][2] memory _b, uint[2] memory _b_p,
-        uint[2] memory _c, uint[2] memory _c_p, uint[2] memory _h, uint[2] memory _k, uint[7] memory _input) public 
+        uint[2] memory _c, uint[2] memory _c_p, uint[2] memory _h, uint[2] memory _k, uint[7] memory _input) public returns(bool) 
     {
-        RealVoter storage sender = realVoterArray[realVoters[msg.sender]];
-        require(!sender.voted, "User already voted");
+        if(realVoters[msg.sender].voted)
+            return false;
         
         Verify verifier = Verify(zkVerifier);
-        require(!verifier.verifyProof(_a, _a_p, _b, _b_p, _c, _c_p, _h, _k, _input), "Proof not valid!");
+        if(!verifier.verifyProof(_a, _a_p, _b, _b_p, _c, _c_p, _h, _k, _input))
+            return false;
         
-        sender.a = _a;
-        sender.a_p = _a_p;
-        sender.b = _b;
-        sender.b_p = _b_p;
-        sender.c = _c;
-        sender.c_p = _c_p;
-        sender.h = _h;
-        sender.k = _k;
-        sender.input = _input;
-        sender.voted = true;
-        
-        realVoterArray.push(sender);
-        realVoters[msg.sender] = realVoterArray.length - 1;
+        realVoters[msg.sender].realVoterAddress = msg.sender;
+        realVoters[msg.sender].a = _a;
+        realVoters[msg.sender].a_p = _a_p;
+        realVoters[msg.sender].b = _b;
+        realVoters[msg.sender].b_p = _b_p;
+        realVoters[msg.sender].c = _c;
+        realVoters[msg.sender].c_p = _c_p;
+        realVoters[msg.sender].h = _h;
+        realVoters[msg.sender].k = _k;
+        realVoters[msg.sender].input = _input;
+        realVoters[msg.sender].voted = true;
         
         voteProofs++;
+        return true;
     }
     
     function getVoteAnswers(uint index) view public returns(bytes[] memory, bytes[] memory, bytes[] memory) {
